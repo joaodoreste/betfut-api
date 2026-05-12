@@ -15,7 +15,8 @@ O sistema tem como objetivo permitir:
 - realização de apostas;
 - gerenciamento de carteira/saldo;
 - comunicação entre microservices;
-- centralização de acesso via API Gateway.
+- centralização de acesso via API Gateway;
+- tolerância a falhas entre serviços.
 
 A arquitetura foi construída utilizando o padrão de microservices, permitindo que cada serviço possua sua própria responsabilidade e seu próprio banco de dados.
 
@@ -29,6 +30,9 @@ O projeto utiliza:
 - Spring Cloud Gateway (API Gateway)
 - Microservices independentes
 - PostgreSQL
+- MongoDB
+- OpenFeign
+- Resilience4j
 - Comunicação distribuída
 
 ---
@@ -40,6 +44,9 @@ O projeto utiliza:
 | eureka-server | 8761 | Registro e descoberta de serviços | - |
 | api-gateway | 8080 | Entrada única da aplicação | - |
 | user-service | 8081 | Cadastro e gerenciamento de usuários | PostgreSQL |
+| match-service | 8082 | Cadastro e gerenciamento de partidas | PostgreSQL |
+| wallet-service | 8083 | Gerenciamento de saldo/carteira | PostgreSQL |
+| betting-service | 8084 | Gerenciamento de apostas | MongoDB |
 
 ---
 
@@ -49,12 +56,17 @@ O Eureka Server é responsável por registrar os microservices da arquitetura.
 
 URL:
 
+```text
 http://localhost:8761
+```
 
 Serviços registrados atualmente:
 
 - API-GATEWAY
 - USER-SERVICE
+- MATCH-SERVICE
+- WALLET-SERVICE
+- BETTING-SERVICE
 
 ---
 
@@ -62,14 +74,11 @@ Serviços registrados atualmente:
 
 O API Gateway centraliza todas as requisições externas da aplicação.
 
-Atualmente, a seguinte rota está configurada:
+Atualmente, as seguintes rotas estão configuradas:
 
 | Rota externa | Serviço destino |
 |---|---|
 | `/api/users/**` | `user-service` |
-
-Exemplo:
-
-POST http://localhost:8080/api/users
-
-O Gateway encaminha automaticamente a requisição para o `user-service`.
+| `/api/matches/**` | `match-service` |
+| `/api/wallets/**` | `wallet-service` |
+| `/api/bets/**` | `betting-service` |
