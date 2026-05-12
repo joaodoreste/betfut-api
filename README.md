@@ -1,30 +1,33 @@
 # BetFut API
 
-Projeto acadêmico desenvolvido para a disciplina de arquitetura de microservices.
+## Integrantes
 
-A aplicação simula uma plataforma fictícia de apostas em futebol, utilizando uma arquitetura distribuída baseada em Spring Boot e Spring Cloud.
+- João Gabriel Raja Gabaglia Doreste
+- Nome 2
+- Nome 3
+- Nome 4
+- Nome 5
 
 ---
 
-# Objetivo do Projeto
+## Descrição do Projeto
 
-O sistema tem como objetivo permitir:
+O projeto BetFut API simula uma plataforma fictícia de apostas esportivas utilizando arquitetura de microservices.
+
+O sistema permite:
 
 - cadastro de usuários;
 - gerenciamento de partidas;
-- realização de apostas;
 - gerenciamento de carteira/saldo;
-- comunicação entre microservices;
-- centralização de acesso via API Gateway;
-- tolerância a falhas entre serviços.
-
-A arquitetura foi construída utilizando o padrão de microservices, permitindo que cada serviço possua sua própria responsabilidade e seu próprio banco de dados.
+- realização de apostas;
+- comunicação distribuída entre serviços;
+- tolerância a falhas.
 
 ---
 
-# Arquitetura
+## Arquitetura
 
-O projeto utiliza:
+O projeto foi desenvolvido utilizando:
 
 - Eureka Server (Service Discovery)
 - Spring Cloud Gateway (API Gateway)
@@ -33,26 +36,54 @@ O projeto utiliza:
 - MongoDB
 - OpenFeign
 - Resilience4j
-- Comunicação distribuída
+
+Arquitetura da aplicação:
+
+```text
+Cliente
+   ↓
+API Gateway
+   ↓
+Microservices
+   ↓
+PostgreSQL / MongoDB
+```
 
 ---
 
-# Serviços
+## Microservices
 
-| Serviço | Porta | Responsabilidade | Banco |
+| Serviço | Responsabilidade | Porta | Banco |
 |---|---|---|---|
-| eureka-server | 8761 | Registro e descoberta de serviços | - |
-| api-gateway | 8080 | Entrada única da aplicação | - |
-| user-service | 8081 | Cadastro e gerenciamento de usuários | PostgreSQL |
-| match-service | 8082 | Cadastro e gerenciamento de partidas | PostgreSQL |
-| wallet-service | 8083 | Gerenciamento de saldo/carteira | PostgreSQL |
-| betting-service | 8084 | Gerenciamento de apostas | MongoDB |
+| eureka-server | Registro e descoberta de serviços | 8761 | - |
+| api-gateway | Entrada única da aplicação | 8080 | - |
+| user-service | Cadastro de usuários | 8081 | PostgreSQL |
+| match-service | Cadastro de partidas | 8082 | PostgreSQL |
+| wallet-service | Gerenciamento de carteira/saldo | 8083 | PostgreSQL |
+| betting-service | Gerenciamento de apostas | 8084 | MongoDB |
 
 ---
 
-# Discovery Server
+## Como executar
 
-O Eureka Server é responsável por registrar os microservices da arquitetura.
+Ordem recomendada:
+
+1. eureka-server
+2. api-gateway
+3. user-service
+4. match-service
+5. wallet-service
+6. betting-service
+
+Executar cada serviço utilizando:
+
+```bash
+mvn spring-boot:run
+```
+
+---
+
+## Discovery Server
 
 URL:
 
@@ -60,7 +91,7 @@ URL:
 http://localhost:8761
 ```
 
-Serviços registrados atualmente:
+Serviços registrados:
 
 - API-GATEWAY
 - USER-SERVICE
@@ -70,15 +101,114 @@ Serviços registrados atualmente:
 
 ---
 
-# API Gateway
+## API Gateway
 
-O API Gateway centraliza todas as requisições externas da aplicação.
+Rotas configuradas:
 
-Atualmente, as seguintes rotas estão configuradas:
-
-| Rota externa | Serviço destino |
+| Rota | Serviço |
 |---|---|
-| `/api/users/**` | `user-service` |
-| `/api/matches/**` | `match-service` |
-| `/api/wallets/**` | `wallet-service` |
-| `/api/bets/**` | `betting-service` |
+| `/api/users/**` | user-service |
+| `/api/matches/**` | match-service |
+| `/api/wallets/**` | wallet-service |
+| `/api/bets/**` | betting-service |
+
+---
+
+## Comunicação entre Microservices
+
+Fluxo principal:
+
+```text
+betting-service → wallet-service
+```
+
+Ao criar uma aposta:
+
+1. betting-service recebe a requisição;
+2. wallet-service debita saldo;
+3. aposta é salva no MongoDB.
+
+---
+
+## Resiliência
+
+O projeto utiliza:
+
+- Retry
+- Circuit Breaker
+- Fallback
+
+Caso o `wallet-service` fique indisponível, a API retorna:
+
+```text
+503 Service Unavailable
+```
+
+---
+
+## Exemplos de requisições
+
+### Criar usuário
+
+```http
+POST http://localhost:8080/api/users
+```
+
+Body:
+
+```json
+{
+  "name": "João",
+  "email": "joao@email.com"
+}
+```
+
+---
+
+### Criar partida
+
+```http
+POST http://localhost:8080/api/matches
+```
+
+Body:
+
+```json
+{
+  "homeTeam": "Flamengo",
+  "awayTeam": "Palmeiras",
+  "matchDate": "2026-05-20T21:30:00",
+  "status": "SCHEDULED",
+  "homeOdd": 1.90,
+  "drawOdd": 3.20,
+  "awayOdd": 2.40
+}
+```
+
+---
+
+### Adicionar saldo
+
+```http
+POST http://localhost:8080/api/wallets/user/1/deposit?amount=100
+```
+
+---
+
+### Criar aposta
+
+```http
+POST http://localhost:8080/api/bets
+```
+
+Body:
+
+```json
+{
+  "userId": 1,
+  "matchId": 1,
+  "prediction": "HOME",
+  "amount": 20,
+  "odd": 1.90
+}
+```
