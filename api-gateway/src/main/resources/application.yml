@@ -24,6 +24,13 @@ spring:
               filters:
                 - StripPrefix=1
 
+            - id: wallet-service
+              uri: lb://WALLET-SERVICE
+              predicates:
+                - Path=/api/wallets/**
+              filters:
+                - StripPrefix=1
+
 eureka:
   client:
     service-url:
