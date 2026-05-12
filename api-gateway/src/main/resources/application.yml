@@ -17,6 +17,13 @@ spring:
               filters:
                 - StripPrefix=1
 
+            - id: match-service
+              uri: lb://MATCH-SERVICE
+              predicates:
+                - Path=/api/matches/**
+              filters:
+                - StripPrefix=1
+
 eureka:
   client:
     service-url:
