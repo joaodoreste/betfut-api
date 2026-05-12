@@ -3,10 +3,6 @@
 ## Integrantes
 
 - João Gabriel Raja Gabaglia Doreste
-- Nome 2
-- Nome 3
-- Nome 4
-- Nome 5
 
 ---
 
